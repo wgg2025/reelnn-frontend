@@ -2,6 +2,6 @@ services:
   - type: web
     name: reelnn-frontend
     env: node
-    buildCommand: corepack enable && yarn install --frozen-lockfile && yarn build
+    buildCommand: corepack enable && yarn install --immutable && yarn build
     startCommand: yarn start
     nodeVersion: 22
