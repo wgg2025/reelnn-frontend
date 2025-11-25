@@ -35,7 +35,7 @@ const Download: React.FC<DownloadProps> = ({
   episodeNumber 
 }) => {
   const { t } = useTranslation();
-  const [telegramLink, setTelegramLink] = useState<string>("");
+  // const [telegramLink, setTelegramLink] = useState<string>("");
   const [directLink, setDirectLink] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -84,7 +84,7 @@ const Download: React.FC<DownloadProps> = ({
       const data = await response.json();
       
       // Update links from API response
-      setTelegramLink(data.telegramLink);
+      // setTelegramLink(data.telegramLink);
       setDirectLink(data.directLink);
     } catch (err) {
       console.error("Error getting download links:", err);

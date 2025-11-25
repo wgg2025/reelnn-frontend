@@ -12,7 +12,7 @@ export default async function handler(request: Request) {
 
   try {
     const body = await request.json();
-    const { streamUrl, title, quality, contentId, mediaType, qualityIndex, seasonNumber, episodeNumber } = body;
+    const { streamUrl, contentId } = body;
 
     if (!streamUrl || !contentId) {
       return new Response(JSON.stringify({ error: 'Required parameters missing' }), {
