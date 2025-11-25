@@ -440,9 +440,9 @@ useEffect(() => {
       const audioTracksList: MediaStreamTrack[] = [];
       // @ts-expect-error - audioTracks não é reconhecido pelo TypeScript mas existe no HTML5
       if (video.audioTracks) {
-        // @ts-expect-error
+        // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
         for (let i = 0; i < video.audioTracks.length; i++) {
-          // @ts-expect-error
+          // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
           audioTracksList.push(video.audioTracks[i]);
         }
       }
@@ -489,16 +489,16 @@ useEffect(() => {
       // Desativar todas as faixas de áudio
       // @ts-expect-error - audioTracks não é reconhecido pelo TypeScript mas existe no HTML5
       if (video.audioTracks) {
-        // @ts-expect-error
+        // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
         for (let i = 0; i < video.audioTracks.length; i++) {
-          // @ts-expect-error
+          // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
           video.audioTracks[i].enabled = false;
         }
         
         // Ativar a faixa selecionada, se válida
-        // @ts-expect-error
+        // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
         if (index >= 0 && index < video.audioTracks.length) {
-          // @ts-expect-error
+          // @ts-expect-error - audioTracks existe no HTML5 mas não é reconhecido pelo TypeScript
           video.audioTracks[index].enabled = true;
         }
       }
