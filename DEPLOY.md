@@ -20,7 +20,7 @@ Configure as seguintes variáveis de ambiente no dashboard do Render:
 | SHORTENER_API_KEY | Chave da API de encurtamento | (vazio) |
 | TOKEN_REFRESH_INTERVAL_MS | Intervalo de atualização de tokens (ms) | 21600000 |
 | API_REQUEST_TIMEOUT | Tempo limite das requisições (ms) | 10000 |
-| TMDB_LANGUAGE | Idioma para buscar informações no TMDB | pt-BR |
+
 
 ## Configuração no Render
 

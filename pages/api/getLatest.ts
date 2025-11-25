@@ -1,4 +1,4 @@
-import { BACKEND_URL, TMDB_LANGUAGE } from "@/config";
+import { BACKEND_URL } from "@/config";
 
 export const runtime = 'edge';
 
@@ -15,7 +15,7 @@ export default async function handler(request: Request) {
 
   try {
     const response = await fetch(
-      `${BACKEND_URL}/api/v1/getlatest/${media_type}?language=${TMDB_LANGUAGE}`
+      `${BACKEND_URL}/api/v1/getlatest/${media_type}`
     );
 
     if (!response.ok) {

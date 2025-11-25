@@ -1,4 +1,4 @@
-import { BACKEND_URL, TMDB_LANGUAGE } from "@/config";
+import { BACKEND_URL } from "@/config";
 
 export const runtime = 'edge';
 
@@ -39,7 +39,7 @@ export default async function handler(request: Request) {
 
   try {
     const response = await fetch(
-      `${BACKEND_URL}/api/v1/paginated/${media_type}?page=${page}&sort_by=${sort_by}&language=${TMDB_LANGUAGE}`
+      `${BACKEND_URL}/api/v1/paginated/${media_type}?page=${page}&sort_by=${sort_by}`
     );
 
     if (!response.ok) {
