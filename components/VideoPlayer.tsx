@@ -12,8 +12,10 @@ import {
   RiArrowLeftLine,
   RiFullscreenLine,
   RiFullscreenExitLine,
+  RiScreenshotLine,
 } from "react-icons/ri";
 import Image from "next/image";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface VideoPlayerProps {
   videoSource: string;
@@ -22,6 +24,10 @@ interface VideoPlayerProps {
   onClose: () => void;
   subtitles?: string;
   quality?: string;
+  audioTracks?: { label: string; language: string; src: string }[];
+  defaultAudioTrack?: number;
+  subtitleTracks?: { label: string; language: string; src: string; type: string }[];
+  defaultSubtitleTrack?: number;
 }
 
 const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -61,7 +67,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onClose,
   subtitles,
   quality,
+  audioTracks = [],
+  defaultAudioTrack = 0,
+  subtitleTracks = [],
+  defaultSubtitleTrack = -1,
 }) => {
+  const { t } = useTranslation();
   const [playerState, setPlayerState] = useState({
     isPlaying: true,
     progress: 0,
@@ -74,6 +85,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     showControls: true,
     isLoading: true,
     bufferProgress: 0,
+    selectedAudioTrack: defaultAudioTrack,
+    selectedSubtitleTrack: defaultSubtitleTrack,
   });
 
   const updatePlayerState = useCallback((updates: Partial<typeof playerState>) => {
@@ -287,6 +300,33 @@ useEffect(() => {
     }
   };
 
+  // Screenshot function
+  const takeScreenshot = () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title || 'screenshot'}-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+        }, 'image/png');
+      }
+    }
+  };
+
   const seek = (seconds: number) => {
     if (videoRef.current) {
       const newTime = Math.max(
@@ -359,6 +399,32 @@ useEffect(() => {
     }
   };
   // --- End Playback Speed Controls ---
+
+  // --- Audio Track Controls ---
+  const handleAudioTrackChange = (index: number) => {
+    if (videoRef.current) {
+      // Update the selected audio track
+      updatePlayerState({ selectedAudioTrack: index });
+      setShowSettingsMenu(false);
+      
+      // Note: In a real implementation, you would need to handle audio track switching
+      // This is a simplified version that just updates the state
+    }
+  };
+  // --- End Audio Track Controls ---
+
+  // --- Subtitle Track Controls ---
+  const handleSubtitleTrackChange = (index: number) => {
+    if (videoRef.current) {
+      // Update the selected subtitle track
+      updatePlayerState({ selectedSubtitleTrack: index });
+      setShowSettingsMenu(false);
+      
+      // Note: In a real implementation, you would need to handle subtitle track switching
+      // This is a simplified version that just updates the state
+    }
+  };
+  // --- End Subtitle Track Controls ---
 
   const videoClasses = useMemo(() => {
     const baseClasses = "mx-auto my-auto z-0";
@@ -495,6 +561,7 @@ useEffect(() => {
           }}
           onDoubleClick={toggleFullscreen}
         >
+          {/* Render default subtitle track if provided */}
           {subtitles && (
             <track
               kind="subtitles"
@@ -504,6 +571,19 @@ useEffect(() => {
               default
             />
           )}
+          
+          {/* Render additional subtitle tracks */}
+          {subtitleTracks.map((track, index) => (
+            <track
+              key={`track-${index}`}
+              kind="subtitles"
+              src={track.src}
+              srcLang={track.language}
+              label={track.label}
+              default={index === defaultSubtitleTrack}
+            />
+          ))}
+          
           Your browser does not support the video tag.
         </video>
 
@@ -605,7 +685,106 @@ useEffect(() => {
               )}
               {activeSettingsTab === "Subtitles" && (
                 <div>
-                  <p className="text-green-300 text-sm">#TODO</p>
+                  {subtitleTracks.length > 0 ? (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1 font-semibold">
+                          {t('select_subtitle')}
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          {/* Option to disable subtitles */}
+                          <button
+                            key="subtitle-off"
+                            onClick={() => handleSubtitleTrackChange(-1)}
+                            className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                              playerState.selectedSubtitleTrack === -1
+                                ? "font-semibold bg-red-600 text-white"
+                                : "hover:bg-gray-700 text-gray-200"
+                            }`}
+                          >
+                            {t('subtitles_off')}
+                          </button>
+                          {subtitleTracks.map((track, index) => (
+                            <button
+                              key={`subtitle-${index}`}
+                              onClick={() => handleSubtitleTrackChange(index)}
+                              className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                                playerState.selectedSubtitleTrack === index
+                                  ? "font-semibold bg-red-600 text-white"
+                                  : "hover:bg-gray-700 text-gray-200"
+                              }`}
+                            >
+                              {track.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-sm">{t('no_subtitles_available')}</p>
+                  )}
+                </div>
+              )}
+              
+              {activeSettingsTab === "Settings" && audioTracks.length > 0 && (
+                <div className="space-y-4 mt-4 pt-4 border-t border-gray-700">
+                  <div>
+                    <div className="text-gray-400 text-xs mb-1 font-semibold">
+                      {t('multiple_audio_tracks')}
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {audioTracks.map((track, index) => (
+                        <button
+                          key={`audio-${index}`}
+                          onClick={() => handleAudioTrackChange(index)}
+                          className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                            playerState.selectedAudioTrack === index
+                              ? "font-semibold bg-red-600 text-white"
+                              : "hover:bg-gray-700 text-gray-200"
+                          }`}
+                        >
+                          {track.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {activeSettingsTab === "Settings" && subtitleTracks.length > 0 && (
+                <div className="space-y-4 mt-4 pt-4 border-t border-gray-700">
+                  <div>
+                    <div className="text-gray-400 text-xs mb-1 font-semibold">
+                      {t('multiple_subtitle_tracks')}
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {/* Option to disable subtitles */}
+                      <button
+                        key="subtitle-off"
+                        onClick={() => handleSubtitleTrackChange(-1)}
+                        className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                          playerState.selectedSubtitleTrack === -1
+                            ? "font-semibold bg-red-600 text-white"
+                            : "hover:bg-gray-700 text-gray-200"
+                        }`}
+                      >
+                        {t('subtitles_off')}
+                      </button>
+                      {subtitleTracks.map((track, index) => (
+                        <button
+                          key={`subtitle-${index}`}
+                          onClick={() => handleSubtitleTrackChange(index)}
+                          className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                            playerState.selectedSubtitleTrack === index
+                              ? "font-semibold bg-red-600 text-white"
+                              : "hover:bg-gray-700 text-gray-200"
+                          }`}
+                        >
+                          {track.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -681,6 +860,15 @@ useEffect(() => {
                 aria-label="Seek forward 10 seconds"
               >
                 <RiForward10Line size={28} />
+              </button>
+
+              <button
+                onClick={takeScreenshot}
+                className="text-white hover:text-gray-300 transition-colors"
+                aria-label="Take screenshot"
+                title="Take screenshot"
+              >
+                <RiScreenshotLine size={28} />
               </button>
 
               {/* Volume Control */}

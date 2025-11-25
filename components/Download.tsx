@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaTelegram, FaDownload } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { useStreamToken } from "@/hooks/useStreamToken";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DownloadProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ const Download: React.FC<DownloadProps> = ({
   seasonNumber, 
   episodeNumber 
 }) => {
+  const { t } = useTranslation();
   const [telegramLink, setTelegramLink] = useState<string>("");
   const [directLink, setDirectLink] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -155,28 +157,18 @@ const Download: React.FC<DownloadProps> = ({
             <div className="text-red-500 text-center py-4">{error || tokenError}</div>
           ) : (
             <>
-              <a
-                href={telegramLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg w-full transition-colors"
-              >
-                <FaTelegram size={20} />
-                <span>Download via Telegram</span>
-              </a>
-              
               <button
                 onClick={handleDirectDownload}
-                className="flex items-center justify-center gap-3 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg w-full transition-colors"
+                className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg w-full transition-colors"
               >
                 <FaDownload size={20} />
-                <span>Direct Download</span>
+                <span>{t('direct_download')}</span>
               </button>
             </>
           )}
           
           <p className="text-xs text-gray-400 text-center mt-4">
-            Note: Use telegram for faster downloads. Direct download may be slower.
+            {t('note_direct_download')}
           </p>
         </div>
       </motion.div>

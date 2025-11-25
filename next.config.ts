@@ -1,4 +1,10 @@
 import type { NextConfig } from "next";
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = join(__filename, '..');
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -13,6 +19,11 @@ const nextConfig: NextConfig = {
         hostname: 'plus.unsplash.com',
       },
     ],
+  },
+  // i18n configuration
+  i18n: {
+    locales: ['pt-BR', 'en'],
+    defaultLocale: 'pt-BR',
   },
 };
 
