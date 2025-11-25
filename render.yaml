@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: reelnn-frontend
+    env: node
+    buildCommand: corepack enable && yarn install --frozen-lockfile && yarn build
+    startCommand: yarn start
+    nodeVersion: 22
