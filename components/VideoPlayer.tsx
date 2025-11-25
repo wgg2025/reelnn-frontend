@@ -87,6 +87,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     bufferProgress: 0,
     selectedAudioTrack: defaultAudioTrack,
     selectedSubtitleTrack: defaultSubtitleTrack,
+    // Estados para faixas embutidas
+    embeddedAudioTracks: [] as MediaStreamTrack[],
+    embeddedSubtitleTracks: [] as TextTrack[],
+    selectedEmbeddedAudioTrack: -1,
+    selectedEmbeddedSubtitleTrack: -1,
   });
 
   const updatePlayerState = useCallback((updates: Partial<typeof playerState>) => {
@@ -426,6 +431,107 @@ useEffect(() => {
   };
   // --- End Subtitle Track Controls ---
 
+  // Função para detectar faixas embutidas no vídeo
+  const detectEmbeddedTracks = useCallback(() => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      
+      // Detectar faixas de áudio embutidas
+      const audioTracksList: MediaStreamTrack[] = [];
+      // @ts-ignore - audioTracks não é reconhecido pelo TypeScript mas existe no HTML5
+      if (video.audioTracks) {
+        // @ts-ignore
+        for (let i = 0; i < video.audioTracks.length; i++) {
+          // @ts-ignore
+          audioTracksList.push(video.audioTracks[i]);
+        }
+      }
+      
+      // Detectar faixas de legenda embutidas
+      const subtitleTracksList: TextTrack[] = [];
+      if (video.textTracks) {
+        for (let i = 0; i < video.textTracks.length; i++) {
+          subtitleTracksList.push(video.textTracks[i]);
+        }
+      }
+      
+      updatePlayerState({
+        embeddedAudioTracks: audioTracksList,
+        embeddedSubtitleTracks: subtitleTracksList
+      });
+    }
+  }, [updatePlayerState]);
+
+  // Efeito para detectar faixas embutidas quando o vídeo carrega
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const handleLoadedData = () => {
+      // Pequeno atraso para garantir que as faixas estejam disponíveis
+      setTimeout(() => {
+        detectEmbeddedTracks();
+      }, 100);
+    };
+
+    videoElement.addEventListener('loadeddata', handleLoadedData);
+    
+    return () => {
+      videoElement.removeEventListener('loadeddata', handleLoadedData);
+    };
+  }, [detectEmbeddedTracks]);
+
+  // --- Embedded Audio Track Controls ---
+  const handleEmbeddedAudioTrackChange = (index: number) => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      
+      // Desativar todas as faixas de áudio
+      // @ts-ignore - audioTracks não é reconhecido pelo TypeScript mas existe no HTML5
+      if (video.audioTracks) {
+        // @ts-ignore
+        for (let i = 0; i < video.audioTracks.length; i++) {
+          // @ts-ignore
+          video.audioTracks[i].enabled = false;
+        }
+        
+        // Ativar a faixa selecionada, se válida
+        // @ts-ignore
+        if (index >= 0 && index < video.audioTracks.length) {
+          // @ts-ignore
+          video.audioTracks[index].enabled = true;
+        }
+      }
+      
+      updatePlayerState({ selectedEmbeddedAudioTrack: index });
+      setShowSettingsMenu(false);
+    }
+  };
+  // --- End Embedded Audio Track Controls ---
+
+  // --- Embedded Subtitle Track Controls ---
+  const handleEmbeddedSubtitleTrackChange = (index: number) => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      
+      // Ocultar todas as legendas
+      if (video.textTracks) {
+        for (let i = 0; i < video.textTracks.length; i++) {
+          video.textTracks[i].mode = 'hidden';
+        }
+        
+        // Mostrar a legenda selecionada, se válida
+        if (index >= 0 && index < video.textTracks.length) {
+          video.textTracks[index].mode = 'showing';
+        }
+      }
+      
+      updatePlayerState({ selectedEmbeddedSubtitleTrack: index });
+      setShowSettingsMenu(false);
+    }
+  };
+  // --- End Embedded Subtitle Track Controls ---
+
   const videoClasses = useMemo(() => {
     const baseClasses = "mx-auto my-auto z-0";
     switch (aspectRatioMode) {
@@ -723,6 +829,70 @@ useEffect(() => {
                   ) : (
                     <p className="text-gray-400 text-sm">{t('no_subtitles_available')}</p>
                   )}
+                </div>
+              )}
+              
+              {/* Seção de faixas de áudio embutidas */}
+              {activeSettingsTab === "Settings" && playerState.embeddedAudioTracks.length > 0 && (
+                <div className="space-y-4 mt-4 pt-4 border-t border-gray-700">
+                  <div>
+                    <div className="text-gray-400 text-xs mb-1 font-semibold">
+                      {t('multiple_audio_tracks')} (Embutido)
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {playerState.embeddedAudioTracks.map((track, index) => (
+                        <button
+                          key={`embedded-audio-${index}`}
+                          onClick={() => handleEmbeddedAudioTrackChange(index)}
+                          className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                            playerState.selectedEmbeddedAudioTrack === index
+                              ? "font-semibold bg-red-600 text-white"
+                              : "hover:bg-gray-700 text-gray-200"
+                          }`}
+                        >
+                          {track.label || `Áudio ${index + 1}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Seção de legendas embutidas */}
+              {activeSettingsTab === "Settings" && playerState.embeddedSubtitleTracks.length > 0 && (
+                <div className="space-y-4 mt-4 pt-4 border-t border-gray-700">
+                  <div>
+                    <div className="text-gray-400 text-xs mb-1 font-semibold">
+                      {t('multiple_subtitle_tracks')} (Embutido)
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {/* Opção para desativar legendas */}
+                      <button
+                        key="embedded-subtitle-off"
+                        onClick={() => handleEmbeddedSubtitleTrackChange(-1)}
+                        className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                          playerState.selectedEmbeddedSubtitleTrack === -1
+                            ? "font-semibold bg-red-600 text-white"
+                            : "hover:bg-gray-700 text-gray-200"
+                        }`}
+                      >
+                        {t('subtitles_off')}
+                      </button>
+                      {playerState.embeddedSubtitleTracks.map((track, index) => (
+                        <button
+                          key={`embedded-subtitle-${index}`}
+                          onClick={() => handleEmbeddedSubtitleTrackChange(index)}
+                          className={`text-left text-sm px-3 py-1.5 rounded w-full transition-colors ${
+                            playerState.selectedEmbeddedSubtitleTrack === index
+                              ? "font-semibold bg-red-600 text-white"
+                              : "hover:bg-gray-700 text-gray-200"
+                          }`}
+                        >
+                          {track.label || track.language || `Legenda ${index + 1}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
               

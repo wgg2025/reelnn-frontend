@@ -1,10 +1,10 @@
-import { BACKEND_URL } from "@/config";
+import { BACKEND_URL, TMDB_LANGUAGE } from "@/config";
 
 export const runtime = 'edge';
 
 export default async function handler() {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/v1/trending`);
+    const response = await fetch(`${BACKEND_URL}/api/v1/trending?language=${TMDB_LANGUAGE}`);
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);

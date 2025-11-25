@@ -30,6 +30,9 @@ export const NEXT_PUBLIC_TELEGRAM_BOT_NAME =
 export const SHORTENER_API_URL = process.env.SHORTENER_API_URL || '';
 export const SHORTENER_API_KEY = process.env.SHORTENER_API_KEY || '';
 
+// TMDB Language
+export const TMDB_LANGUAGE = process.env.TMDB_LANGUAGE || 'pt-BR';
+
 
 
 // Don't touch this

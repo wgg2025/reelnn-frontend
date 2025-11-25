@@ -1,4 +1,4 @@
-import { BACKEND_URL } from "@/config";
+import { BACKEND_URL, TMDB_LANGUAGE } from "@/config";
 
 export const runtime = 'edge';
 
@@ -24,7 +24,7 @@ export default async function handler(request: Request) {
     }
 
     const response = await fetch(
-      `${BACKEND_URL}/api/v1/search?query=${encodeURIComponent(query)}`
+      `${BACKEND_URL}/api/v1/search?query=${encodeURIComponent(query)}&language=${TMDB_LANGUAGE}`
     );
 
     if (!response.ok) {
